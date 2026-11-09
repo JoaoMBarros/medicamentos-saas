@@ -29,6 +29,28 @@ Mais detalhes estão em:
 - [Roadmap](.specs/ROADMAP.md)
 - [Tasks](.specs/TASKS.md)
 
+## Estrutura de módulos
+
+Os módulos são representados por pacotes sob
+`br.com.medicacao.saas` e devem evoluir com dependências direcionadas:
+
+```text
+br.com.medicacao.saas
+├── identity       # autenticação e autorização
+├── organization  # tenants, usuários e permissões
+├── catalog       # medicamentos e normalização
+├── inventory     # lotes, locais e movimentações
+├── ingestion     # ingestão e validação de dados
+├── expiration    # regras e consultas de validade
+├── notification  # notificações e entregas
+└── audit         # rastreabilidade operacional
+```
+
+Controllers pertencem à camada de entrada e devem delegar para casos de uso
+dos módulos. Repositories, adapters e integrações externas não devem ser
+acessados diretamente por controllers. A criação de novos módulos ou
+dependências entre módulos deve preservar esses limites.
+
 ## Stack
 
 - Java 21
@@ -65,19 +87,40 @@ java -version
 .\gradlew.bat --version
 ```
 
+Atualmente não há variáveis de ambiente obrigatórias para executar o endpoint
+inicial de saúde. Integrações futuras devem documentar suas variáveis sem
+incluir valores sensíveis no repositório.
+
 ## Executar
 
 ```bash
-./gradlew bootRun
+./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
 No Windows:
 
 ```powershell
-.\gradlew.bat bootRun
+.\gradlew.bat bootRun --args="--spring.profiles.active=local"
 ```
 
 A API estará disponível em `http://localhost:8080`.
+
+Para executar a infraestrutura local, defina `POSTGRES_PASSWORD` sem
+versioná-la e inicie o PostgreSQL:
+
+```bash
+export POSTGRES_PASSWORD='<local-password>'
+docker compose up -d postgres
+./gradlew bootRun --args='--spring.profiles.active=local'
+```
+
+No PowerShell:
+
+```powershell
+$env:POSTGRES_PASSWORD = '<local-password>'
+docker compose up -d postgres
+.\gradlew.bat bootRun --args="--spring.profiles.active=local"
+```
 
 ## Endpoints iniciais
 
@@ -117,9 +160,29 @@ Segredos, tokens, credenciais, chaves privadas e dados sensíveis nunca devem
 ser armazenados em arquivos versionados, incluídos no commit ou enviados ao
 repositório. Use variáveis de ambiente ou um gerenciador de segredos.
 
+Para desenvolvimento local, use o arquivo de exemplo como referência e
+substitua os valores locais. O Docker Compose carrega automaticamente um
+arquivo `.env`; o Spring Boot deve receber essas variáveis pela shell, IDE ou
+gerenciador de secrets:
+
+```bash
+cp .env.example .env
+```
+
+No PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Depois, carregue as variáveis no ambiente antes de executar a aplicação. O
+arquivo `.env` é ignorado pelo Git e nunca deve ser commitado.
+
 ## Segurança e multi-tenancy
 
 - Todos os serviços e endpoints externos devem exigir autenticação.
+- A API valida tokens JWT por OAuth 2.0 Resource Server; configure
+  `OIDC_JWK_SET_URI` para o endpoint de chaves do provedor de identidade.
 - Toda operação deve validar autorização e vínculo com a organização.
 - Entidades pertencentes a tenants devem possuir `organization_id`.
 - O histórico de movimentações deve ser auditável e não deve ser apagado em

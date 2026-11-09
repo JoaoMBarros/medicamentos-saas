@@ -2,6 +2,39 @@ spring:
   application:
     name: medicacao-saas
 
+  mvc:
+    problemdetails:
+      enabled: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OIDC_JWK_SET_URI:http://localhost:8081/.well-known/jwks.json}
+          issuer-uri: ${OIDC_ISSUER_URI:http://localhost:8081/issuer}
+          audience: ${OIDC_AUDIENCE:medicacao-api}
+
+  datasource:
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT_MS:30000}
+      max-lifetime: ${DB_MAX_LIFETIME_MS:1800000}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: app
+
+  flyway:
+    enabled: true
+    schemas: app
+    default-schema: app
+    create-schemas: true
+
 server:
   port: 8080
 
@@ -9,8 +42,14 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics
   endpoint:
     health:
       probes:
         enabled: true
+      show-details: never
+
+logging:
+  structured:
+    format:
+      console: ecs
