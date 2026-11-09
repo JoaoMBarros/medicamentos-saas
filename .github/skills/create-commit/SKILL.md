@@ -40,6 +40,10 @@ concise message.
 ## Rules
 
 - Never include secrets, credentials, generated artifacts, or unrelated changes.
+- Never commit sensitive data, tokens, private keys, personal data, or
+  environment files containing secrets.
+- Review the complete staged diff before committing and stop if sensitive data
+  is found.
 - Do not rewrite, amend, or squash existing commits.
 - Use an English imperative verb such as `add`, `implement`, `update`, or
   `fix`.

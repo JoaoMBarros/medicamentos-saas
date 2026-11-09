@@ -1,16 +1,80 @@
-# medicacao-saas
+# Medicacao SaaS
 
-Projeto inicial de uma API Spring Boot com Java 21 e Gradle.
+Backend de um SaaS para gerenciamento de validade de medicamentos, com
+suporte a múltiplas organizações, cadastro manual, ingestão em lote,
+monitoramento de validade, auditoria e notificações.
+
+## Visão geral
+
+O projeto começa como um **modular monolith** para reduzir a complexidade
+operacional e permitir evolução rápida. Os módulos devem manter limites claros:
+
+- Identity: autenticação e autorização
+- Organization: tenants, usuários e permissões
+- Catalog: medicamentos e normalização
+- Inventory: lotes, locais e movimentações
+- Ingestion: importação de arquivos e processamento assíncrono
+- Expiration: regras de validade
+- Notification: alertas e entregas
+- Audit: rastreabilidade das operações
+
+Ingestões grandes e notificações são processadas de forma assíncrona. A
+extração para microsserviços só deve ocorrer quando métricas de escala,
+isolamento ou ownership justificarem a complexidade.
+
+Mais detalhes estão em:
+
+- [Architecture](.specs/ARCHITECTURE.md)
+- [Stack](.specs/STACK.md)
+- [Roadmap](.specs/ROADMAP.md)
+- [Tasks](.specs/TASKS.md)
+
+## Stack
+
+- Java 21
+- Spring Boot
+- Gradle
+- Spring MVC
+- Spring Security com OAuth 2.0/OIDC
+- PostgreSQL como banco transacional
+- Spring Data JPA/Hibernate
+- Flyway para migrations
+- RabbitMQ para processamento assíncrono
+- Redis opcional para cache
+- S3-compatible storage para arquivos de ingestão
+- Actuator, Micrometer e OpenTelemetry
+- JUnit 5, Spring Boot Test, MockMvc e Testcontainers
+- JaCoCo com cobertura mínima global de 85%
 
 ## Requisitos
 
 - Java 21
-- Gradle 8.14 ou superior
+- Gradle 8.14 ou superior, ou o Gradle Wrapper incluído no projeto
+
+Verifique a instalação:
+
+```bash
+java -version
+./gradlew --version
+```
+
+No Windows:
+
+```powershell
+java -version
+.\gradlew.bat --version
+```
 
 ## Executar
 
 ```bash
-gradle bootRun
+./gradlew bootRun
+```
+
+No Windows:
+
+```powershell
+.\gradlew.bat bootRun
 ```
 
 A API estará disponível em `http://localhost:8080`.
@@ -20,16 +84,64 @@ A API estará disponível em `http://localhost:8080`.
 - `GET /api/health`
 - `GET /actuator/health`
 
-## Testes
+Endpoints de negócio devem exigir autenticação. Health checks operacionais
+devem ser expostos somente conforme a configuração da infraestrutura.
+
+## Testes e cobertura
+
+Execute os testes:
 
 ```bash
-gradle test
+./gradlew test
 ```
 
-O projeto usa JaCoCo para gerar o relatório de cobertura em
-`build/reports/jacoco/test/html/index.html`. O `gradle check` falha quando a
-cobertura global de linhas fica abaixo de 85%.
+Execute a validação completa:
 
 ```bash
-gradle check
+./gradlew check
 ```
+
+No Windows, substitua `./gradlew` por `.\gradlew.bat`.
+
+O JaCoCo gera o relatório HTML em
+`build/reports/jacoco/test/html/index.html`. O `check` falha quando a cobertura
+global de linhas fica abaixo de 85%.
+
+## Configuração
+
+Use arquivos YAML para valores não sensíveis que podem mudar sem novo deploy de
+código, como janelas de alerta, limites de paginação, nomes de filas e feature
+flags.
+
+Segredos, tokens, credenciais, chaves privadas e dados sensíveis nunca devem
+ser armazenados em arquivos versionados, incluídos no commit ou enviados ao
+repositório. Use variáveis de ambiente ou um gerenciador de segredos.
+
+## Segurança e multi-tenancy
+
+- Todos os serviços e endpoints externos devem exigir autenticação.
+- Toda operação deve validar autorização e vínculo com a organização.
+- Entidades pertencentes a tenants devem possuir `organization_id`.
+- O histórico de movimentações deve ser auditável e não deve ser apagado em
+  operações normais.
+- Logs e mensagens de erro não devem expor tokens, credenciais ou dados pessoais
+  desnecessários.
+
+## Fluxos principais
+
+### Cadastro manual
+
+O usuário envia medicamento, lote, quantidade, local e validade. A API valida a
+entrada, atualiza o estoque, registra a movimentação na mesma transação e
+retorna um contrato imutável.
+
+### Ingestão
+
+O cliente cria um job, envia o arquivo para object storage e acompanha o
+processamento assíncrono. O worker valida cada linha, permite sucesso parcial,
+registra erros por item e usa idempotência para evitar duplicidades.
+
+### Alertas
+
+Um job agendado identifica lotes próximos do vencimento, cria notificações
+deduplicadas e delega a entrega para um worker com retry e dead-letter.

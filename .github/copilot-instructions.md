@@ -18,3 +18,6 @@
 - Adicione ou atualize testes para cada comportamento novo ou alterado.
 - Faça mudanças pequenas e compatíveis com o comportamento existente.
 - Não adicione dependências sem justificar o uso e atualizar o build.
+- Nunca versione, faça commit ou push de dados sensíveis, segredos, credenciais,
+  tokens, chaves privadas ou dados pessoais desnecessários.
+- Revise os arquivos staged antes de qualquer commit e remova dados sensíveis.
