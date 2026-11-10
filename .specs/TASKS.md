@@ -76,12 +76,12 @@ This file decomposes the deliveries defined in
 
 ### Medication catalog
 
-- [ ] Define the medication domain model and database migration.
-- [ ] Add medication fields for name, active ingredient, concentration,
+- [x] Define the medication domain model and database migration.
+- [x] Add medication fields for name, active ingredient, concentration,
   presentation, and regulatory identifiers.
-- [ ] Implement medication creation, update, and retrieval use cases.
-- [ ] Prevent duplicate medications within an organization.
-- [ ] Add paginated, filtered, and sorted medication search.
+- [x] Implement medication creation, update, and retrieval use cases.
+- [x] Prevent duplicate medications within an organization.
+- [x] Add paginated, filtered, and sorted medication search.
 
 ### Locations
 
@@ -93,11 +93,11 @@ This file decomposes the deliveries defined in
 
 ### API contracts and quality
 
-- [ ] Define immutable request and response records.
-- [ ] Implement ModelMapper-based transformations outside controllers.
-- [ ] Add Bean Validation to external request records.
-- [ ] Add controller, service, repository, and integration tests as applicable.
-- [ ] Document catalog and location endpoints.
+- [x] Define immutable request and response records.
+- [x] Implement transformations outside controllers.
+- [x] Add Bean Validation to external request records.
+- [x] Add controller, service, repository, and integration tests as applicable.
+- [x] Document medication catalog endpoints.
 
 ## Delivery 4 - Manual inventory and batch management
 
