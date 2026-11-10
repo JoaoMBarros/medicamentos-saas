@@ -85,11 +85,11 @@ This file decomposes the deliveries defined in
 
 ### Locations
 
-- [ ] Define the location domain model and database migration.
-- [ ] Implement location creation, update, and retrieval use cases.
-- [ ] Support pharmacy and warehouse location types.
-- [ ] Prevent invalid or cross-tenant location references.
-- [ ] Add paginated location search.
+- [x] Define the location domain model and database migration.
+- [x] Implement location creation, update, and retrieval use cases.
+- [x] Support pharmacy and warehouse location types.
+- [x] Prevent invalid or cross-tenant location references.
+- [x] Add paginated location search.
 
 ### API contracts and quality
 
@@ -97,35 +97,36 @@ This file decomposes the deliveries defined in
 - [x] Implement transformations outside controllers.
 - [x] Add Bean Validation to external request records.
 - [x] Add controller, service, repository, and integration tests as applicable.
-- [x] Document medication catalog endpoints.
+- [x] Document medication and location catalog endpoints.
 
 ## Delivery 4 - Manual inventory and batch management
 
 ### Stock batches
 
-- [ ] Define the stock batch model and migration.
-- [ ] Implement batch registration with lot number, expiration date, quantity,
+- [x] Define the stock batch model and migration.
+- [x] Implement batch registration with lot number, expiration date, quantity,
   medication, and location.
-- [ ] Validate expiration dates, quantities, status, and tenant ownership.
-- [ ] Implement batch update and retrieval operations.
-- [ ] Add indexes for expiration date, organization, location, and medication.
+- [x] Validate expiration dates, quantities, status, and tenant ownership.
+- [x] Implement batch update and retrieval operations.
+- [x] Add indexes for expiration date, organization, location, and medication.
 
 ### Inventory movements
 
-- [ ] Define the immutable inventory movement model and migration.
-- [ ] Implement addition, removal, transfer, and adjustment use cases.
-- [ ] Persist batch changes and movements in one transaction.
-- [ ] Add optimistic locking for concurrent inventory updates.
-- [ ] Prevent negative quantities unless an explicitly approved adjustment
+- [x] Define the immutable inventory movement model and migration.
+- [x] Implement addition, removal, transfer, and adjustment use cases.
+- [x] Persist batch changes and movements in one transaction.
+- [x] Add optimistic locking for concurrent inventory updates.
+- [x] Prevent negative quantities unless an explicitly approved adjustment
   policy exists.
 
 ### Reliability and queries
 
-- [ ] Implement idempotency-key storage and duplicate request handling.
-- [ ] Add queries for expired and soon-to-expire batches.
-- [ ] Add batch history and audit retrieval.
-- [ ] Prevent destructive deletion of inventory movement history.
-- [ ] Add unit, integration, concurrency, and API tests.
+- [x] Implement idempotency-key storage and duplicate request handling.
+- [x] Add queries for expired and soon-to-expire batches.
+- [x] Add batch history and audit retrieval.
+- [x] Prevent destructive deletion of inventory movement history.
+- [x] Add unit and API tests; integration and concurrency validation pending
+  database/Docker availability.
 
 ## Delivery 5 - File ingestion
 

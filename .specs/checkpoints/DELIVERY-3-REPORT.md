@@ -80,3 +80,70 @@ curl -i -X PUT "http://localhost:8080/api/v1/medications/{medicationId}" \
 | Table | Purpose | Notable fields / constraints / indexes |
 |-------|---------|-----------------------------------------|
 | `app.medications` | Tenant-owned normalized medication catalog | `organization_id` references `app.organizations`; unique identity on organization plus name, active ingredient, concentration, and presentation; `version` supports optimistic locking; indexes support organization/name and organization/active ingredient searches. |
+
+### Locations - 2026-11-10T16:09:05Z
+
+**Specification:** Locations use the minimum confirmed contract: a required
+`name` and a required `type`, restricted to `PHARMACY` or `WAREHOUSE`.
+Duplicates are rejected by organization, name, and type.
+
+**Acceptance criteria:**
+
+- **AC-L-1:** Given an authenticated active member, when a valid location is
+  created, then it is stored under the member's organization and returned as a
+  response record.
+- **AC-L-2:** Given a location with the same name and type in the organization,
+  when it is created or updated, then the operation returns a conflict.
+- **AC-L-3:** Given an authenticated active member, when a location is
+  retrieved or updated, then only a location belonging to the current
+  organization can be accessed.
+- **AC-L-4:** Given an authenticated active member, when locations are searched,
+  then results are tenant-scoped, paginated, filtered by name, and sortable
+  through `Pageable`.
+- **AC-L-5:** Given an invalid external request, then Bean Validation rejects
+  blank names, missing types, or names over 120 characters.
+
+**Delivered behavior:** Added location CRUD and paginated search endpoints under
+`/api/v1/locations`, with active-membership authorization, tenant-scoped
+repository operations, supported pharmacy/warehouse types, duplicate
+prevention (names are trimmed and normalized to lowercase), optimistic locking,
+and RFC 9457 conflict/not-found handling.
+
+**Validation:** Unit tests cover AC-L-1 through AC-L-4. AC-L-5 uses the
+existing global Bean Validation problem handler. The targeted catalog tests
+passed. `gradlew check` compiled and ran 28 tests, but one pre-existing
+Spring context test failed because Docker/Testcontainers is unavailable.
+
+**Assumptions / limitations:** The confirmed minimum contract intentionally
+does not include address or other location metadata. Location references from
+stock batches will be validated when the inventory module is implemented.
+Mapping remains an explicit response mapper because this repository does not
+currently configure ModelMapper.
+
+**Endpoints (curl):**
+
+```bash
+curl -i -X POST "http://localhost:8080/api/v1/locations" \
+  -H "Authorization: Bearer ******" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Main pharmacy","type":"PHARMACY"}'
+
+curl -i "http://localhost:8080/api/v1/locations?page=0&size=20&term=central&sort=name,asc" \
+  -H "Authorization: Bearer ******" \
+  -H "Accept: application/json"
+
+curl -i "http://localhost:8080/api/v1/locations/{locationId}" \
+  -H "Authorization: Bearer ******" \
+  -H "Accept: application/json"
+
+curl -i -X PUT "http://localhost:8080/api/v1/locations/{locationId}" \
+  -H "Authorization: Bearer ******" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Central warehouse","type":"WAREHOUSE"}'
+```
+
+**Database:**
+
+| Table | Purpose | Notable fields / constraints / indexes |
+|-------|---------|-----------------------------------------|
+| `app.locations` | Tenant-owned pharmacy and warehouse locations | `organization_id` references `app.organizations`; `type` is constrained to `PHARMACY` or `WAREHOUSE`; unique organization/name/type constraint prevents duplicates; `version` supports optimistic locking; organization/name index supports tenant-scoped search. |
