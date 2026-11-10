@@ -30,6 +30,8 @@ work.
 3. **Inspect the codebase**
    - Find existing patterns, related functionality, tests, configuration, and
      documentation before editing.
+   - Read `.specs/BUSINESS_RULES.md` before implementing a new feature and
+     identify the business rules that apply to the requested behavior.
    - Reuse established abstractions and conventions unless the specification
      requires a deliberate change.
 
@@ -41,6 +43,9 @@ work.
 
 5. **Implement against the specification**
    - Make precise changes that satisfy the acceptance criteria.
+   - Preserve and enforce the applicable rules from `.specs/BUSINESS_RULES.md`;
+     if the feature exposes an undefined or conflicting rule, stop and clarify
+     it before implementing.
    - Validate external input at system boundaries.
    - Keep responsibilities separated and errors explicit.
    - Update directly related tests and documentation.
@@ -83,6 +88,37 @@ work.
   configuration files instead of hard-coding them in service code.
 - Protect every microservice with authentication. Do not expose service
   endpoints without the required authentication configuration and tests.
+- Use an external OIDC provider, such as Keycloak, as the Authorization
+  Server. Client applications must use OAuth 2.0 Authorization Code with PKCE;
+  the Spring Boot application remains a Resource Server.
+- Keep Password Grant limited to local development or automated tests. Never
+  use it as the production authentication flow.
+- Whenever a new endpoint is created, return a working Bash `curl` example for
+  it, including the HTTP method, URL, required headers, authentication header
+  when applicable, and a representative request body when applicable.
+- Whenever an activity is completed, mark the corresponding checkbox as
+  completed in `.specs/TASKS.md` in the same change.
+- Whenever a new feature is implemented, add a concise, high-level entry to
+  the corresponding `.specs/checkpoints/<DELIVERY>-REPORT.md` in the same
+  change. Include the completion date and time,
+  delivered behavior, relevant validation, and notable limitations when
+  applicable.
+- Every delivery entry in the appropriate `.specs/checkpoints/*-REPORT.md` must include the pertinent Bash
+  `curl` examples for its externally observable endpoints or flows.
+- When a delivery creates database tables, document in the corresponding
+  `.specs/checkpoints/*-REPORT.md` entry the high-level purpose of every created table and
+  field, as well as constraints and indexes when they affect behavior.
+- Whenever a decision is made only for local development or testing, add a
+  checkbox task to the appropriate category in `.specs/CONCERNS.md` before
+  completing the activity. Use `Review pre development deploy` for shared
+  development deployment concerns and `Review pre prod deploy` for production
+  concerns.
+- Before a development or production deployment, review the corresponding
+  `.specs/CONCERNS.md` category and resolve or explicitly accept its open
+  items.
+- Whenever a pull request is opened, include a clear description of what is
+  being merged, why it is being merged, the relevant validation results, and
+  any known limitations or follow-up concerns.
 
 ## Extending this skill
 

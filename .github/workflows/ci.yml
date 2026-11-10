@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+      - 'feature/**'
+      - 'fix/**'
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Grant execute permission
+        run: chmod +x gradlew
+      - name: Run checks
+        run: ./gradlew check

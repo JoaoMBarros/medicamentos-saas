@@ -7,62 +7,62 @@ This file decomposes the deliveries defined in
 
 ### Project and module structure
 
-- [ ] Define the base package structure for identity, organization, catalog,
+- [x] Define the base package structure for identity, organization, catalog,
   inventory, ingestion, expiration, notification, and audit.
-- [ ] Define module boundaries and dependency direction.
-- [ ] Document local setup and required environment variables.
+- [x] Define module boundaries and dependency direction.
+- [x] Document local setup and required environment variables.
 
 ### Persistence
 
-- [ ] Add PostgreSQL configuration for local and production profiles.
-- [ ] Add Flyway and create the initial migration baseline.
-- [ ] Configure connection pooling and database health checks.
-- [ ] Add Docker Compose services for PostgreSQL and local dependencies.
+- [x] Add PostgreSQL configuration for local and production profiles.
+- [x] Add Flyway and create the initial migration baseline.
+- [x] Configure connection pooling and database health checks.
+- [x] Add Docker Compose services for PostgreSQL and local dependencies.
 
 ### Configuration and security foundation
 
-- [ ] Separate local, test, and production YAML profiles.
-- [ ] Load secrets only from environment variables or a secret manager.
-- [ ] Add Spring Security resource-server dependencies and baseline
+- [x] Separate local, test, and production YAML profiles.
+- [x] Load secrets only from environment variables or a secret manager.
+- [x] Add Spring Security resource-server dependencies and baseline
   authentication configuration.
-- [ ] Deny unauthenticated access by default.
-- [ ] Define the operational exception for infrastructure health probes.
+- [x] Deny unauthenticated access by default.
+- [x] Define the operational exception for infrastructure health probes.
 
 ### Quality and observability
 
-- [ ] Add CI workflow for build and tests.
-- [ ] Enforce JaCoCo minimum global line coverage of 85%.
-- [ ] Add structured JSON logging.
-- [ ] Add request correlation ID handling.
-- [ ] Configure Actuator liveness and readiness probes.
-- [ ] Add baseline Micrometer metrics.
-- [ ] Define the API problem-details error response.
+- [x] Add CI workflow for build and tests.
+- [x] Enforce JaCoCo minimum global line coverage of 85%.
+- [x] Add structured JSON logging.
+- [x] Add request correlation ID handling.
+- [x] Configure Actuator liveness and readiness probes.
+- [x] Add baseline Micrometer metrics.
+- [x] Define the API problem-details error response.
 
 ## Delivery 2 - Identity and tenant management
 
 ### Authentication
 
-- [ ] Configure OAuth 2.0/OIDC issuer and audience validation.
-- [ ] Map token claims to application user and organization context.
-- [ ] Add authentication failure and authorization failure handlers.
-- [ ] Add integration tests for valid, expired, malformed, and missing tokens.
+- [x] Configure OAuth 2.0/OIDC issuer and audience validation.
+- [x] Map token claims to application user and organization context.
+- [x] Add authentication failure and authorization failure handlers.
+- [x] Add integration tests for valid, expired, malformed, and missing tokens.
 
 ### Organizations and memberships
 
-- [ ] Create the organization domain model and migration.
-- [ ] Create user membership and role models.
-- [ ] Implement organization creation and lifecycle operations.
-- [ ] Implement user invitation and membership management.
-- [ ] Implement role and permission checks.
-- [ ] Add audit events for membership and permission changes.
+- [x] Create the organization domain model and migration.
+- [x] Create user membership and role models.
+- [x] Implement organization creation and lifecycle operations.
+- [x] Implement user invitation and membership management.
+- [x] Implement role and permission checks.
+- [x] Add audit events for membership and permission changes.
 
 ### Tenant isolation
 
-- [ ] Add `organization_id` to every tenant-owned model and table.
-- [ ] Implement tenant context resolution from the authenticated identity.
-- [ ] Enforce tenant filtering in application services and repositories.
-- [ ] Add cross-tenant read and write rejection tests.
-- [ ] Add indexes for tenant-aware lookups.
+- [x] Add `organization_id` to every tenant-owned model and table.
+- [x] Implement tenant context resolution from the authenticated identity.
+- [x] Enforce tenant filtering in application services and repositories.
+- [x] Add cross-tenant read and write rejection tests.
+- [x] Add indexes for tenant-aware lookups.
 
 ## Delivery 3 - Medication catalog and locations
 
