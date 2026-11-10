@@ -157,7 +157,7 @@ curl -X POST http://localhost:8080/api/organizations \
   -H "Content-Type: application/json" \
   -d '{"name":"Acme Pharmacy","slug":"acme-pharmacy"}'
 
-curl http://localhost:8080/api/organizations/<organization-id>/memberships \
+curl "http://localhost:8080/api/organizations/<organization-id>/memberships?page=0&size=20" \
   -H "Authorization: Bearer <jwt>"
 
 curl -X POST http://localhost:8080/api/organizations/<organization-id>/memberships \

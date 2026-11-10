@@ -1,29 +1,25 @@
 package br.com.medicacao.saas.organization;
 
-import java.util.List;
+import java.time.Clock;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.medicacao.saas.identity.AuthenticatedUser;
 import br.com.medicacao.saas.identity.TenantContext;
 
 @Service
+@RequiredArgsConstructor
 public class OrganizationService {
 
     private final OrganizationRepository organizations;
     private final MembershipRepository memberships;
     private final OrganizationAuditRepository auditEvents;
     private final TenantContext tenantContext;
-
-    public OrganizationService(OrganizationRepository organizations, MembershipRepository memberships,
-            OrganizationAuditRepository auditEvents, TenantContext tenantContext) {
-        this.organizations = organizations;
-        this.memberships = memberships;
-        this.auditEvents = auditEvents;
-        this.tenantContext = tenantContext;
-    }
+    private final Clock clock;
 
     @Transactional
     public OrganizationResponse create(OrganizationRequest request) {
@@ -35,7 +31,7 @@ public class OrganizationService {
         memberships.save(new OrganizationMembership(organization.getId(), actor.subject(),
                 actor.username(), MembershipRole.OWNER, MembershipStatus.ACTIVE));
         auditEvents.save(new OrganizationAuditEvent(organization.getId(), actor.subject(),
-                "ORGANIZATION_CREATED", actor.subject(), organization.getSlug()));
+                "ORGANIZATION_CREATED", actor.subject(), organization.getSlug(), clock));
         return OrganizationResponse.from(organization);
     }
 
@@ -51,7 +47,7 @@ public class OrganizationService {
         Organization organization = findOrganization(organizationId);
         organization.suspend();
         auditEvents.save(new OrganizationAuditEvent(organizationId, tenantContext.currentUser().subject(),
-                "ORGANIZATION_SUSPENDED", null, null));
+                "ORGANIZATION_SUSPENDED", null, null, clock));
         return OrganizationResponse.from(organization);
     }
 
@@ -61,15 +57,15 @@ public class OrganizationService {
         Organization organization = findOrganization(organizationId);
         organization.archive();
         auditEvents.save(new OrganizationAuditEvent(organizationId, tenantContext.currentUser().subject(),
-                "ORGANIZATION_ARCHIVED", null, null));
+                "ORGANIZATION_ARCHIVED", null, null, clock));
         return OrganizationResponse.from(organization);
     }
 
     @Transactional(readOnly = true)
-    public List<MembershipResponse> listMemberships(UUID organizationId) {
+    public MembershipPageResponse listMemberships(UUID organizationId, Pageable pageable) {
         requireMember(organizationId);
-        return memberships.findAllByOrganizationIdAndStatusNot(organizationId, MembershipStatus.REMOVED)
-                .stream().map(MembershipResponse::from).toList();
+        return MembershipPageResponse.from(memberships.findAllByOrganizationIdAndStatusNot(
+                organizationId, MembershipStatus.REMOVED, pageable));
     }
 
     @Transactional
@@ -81,7 +77,7 @@ public class OrganizationService {
         OrganizationMembership membership = memberships.save(new OrganizationMembership(organizationId,
                 request.userId(), request.username(), request.role(), MembershipStatus.INVITED));
         auditEvents.save(new OrganizationAuditEvent(organizationId, tenantContext.currentUser().subject(),
-                "MEMBERSHIP_INVITED", request.userId(), request.role().name()));
+                "MEMBERSHIP_INVITED", request.userId(), request.role().name(), clock));
         return MembershipResponse.from(membership);
     }
 
@@ -94,7 +90,7 @@ public class OrganizationService {
         }
         membership.changeRole(request.role());
         auditEvents.save(new OrganizationAuditEvent(organizationId, tenantContext.currentUser().subject(),
-                "MEMBERSHIP_ROLE_CHANGED", membership.getUserId(), request.role().name()));
+                "MEMBERSHIP_ROLE_CHANGED", membership.getUserId(), request.role().name(), clock));
         return MembershipResponse.from(membership);
     }
 
@@ -107,7 +103,7 @@ public class OrganizationService {
         }
         membership.remove();
         auditEvents.save(new OrganizationAuditEvent(organizationId, tenantContext.currentUser().subject(),
-                "MEMBERSHIP_REMOVED", membership.getUserId(), null));
+                "MEMBERSHIP_REMOVED", membership.getUserId(), null, clock));
     }
 
     private Organization findOrganization(UUID id) {
@@ -116,25 +112,22 @@ public class OrganizationService {
     }
 
     private OrganizationMembership findMembership(UUID organizationId, UUID membershipId) {
-        OrganizationMembership membership = memberships.findById(membershipId)
-                .filter(item -> item.getOrganizationId().equals(organizationId))
+        OrganizationMembership membership = memberships.findByIdAndOrganizationId(membershipId, organizationId)
                 .orElseThrow(() -> new OrganizationNotFoundException("Membership was not found."));
         return membership;
     }
 
-    private void requireMember(UUID organizationId) {
+    private OrganizationMembership requireMember(UUID organizationId) {
         tenantContext.requireOrganization(organizationId.toString());
         AuthenticatedUser actor = tenantContext.currentUser();
-        memberships.findByOrganizationIdAndUserId(organizationId, actor.subject())
+        return memberships.findByOrganizationIdAndUserId(organizationId, actor.subject())
                 .filter(membership -> membership.getStatus() == MembershipStatus.ACTIVE)
                 .orElseThrow(() -> new br.com.medicacao.saas.identity.TenantAccessDeniedException(
                         "The user is not an active member of this organization."));
     }
 
     private void requireAdministrator(UUID organizationId) {
-        requireMember(organizationId);
-        MembershipRole role = memberships.findByOrganizationIdAndUserId(organizationId,
-                tenantContext.currentUser().subject()).orElseThrow().getRole();
+        MembershipRole role = requireMember(organizationId).getRole();
         if (role != MembershipRole.OWNER && role != MembershipRole.ADMIN) {
             throw new br.com.medicacao.saas.identity.TenantAccessDeniedException(
                     "Administrator permission is required.");

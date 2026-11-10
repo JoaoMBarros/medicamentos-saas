@@ -12,11 +12,20 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 @Entity
 @Table(name = "organizations")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(onlyExplicitlyIncluded = true)
 public class Organization {
 
     @Id
+    @ToString.Include
     private UUID id;
 
     @Column(nullable = false, length = 120)
@@ -35,8 +44,9 @@ public class Organization {
     @Column(nullable = false)
     private Instant updatedAt;
 
-    protected Organization() {
-    }
+    @jakarta.persistence.Version
+    @Column(nullable = false)
+    private long version;
 
     public Organization(String name, String slug) {
         this.name = name;
@@ -65,4 +75,21 @@ public class Organization {
     public OrganizationStatus getStatus() { return status; }
     public void suspend() { status = OrganizationStatus.SUSPENDED; }
     public void archive() { status = OrganizationStatus.ARCHIVED; }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+        Organization that = (Organization) other;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

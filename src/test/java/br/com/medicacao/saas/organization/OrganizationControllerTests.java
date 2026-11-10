@@ -3,10 +3,10 @@ package br.com.medicacao.saas.organization;
 import static org.mockito.Mockito.*;
 
 import java.util.UUID;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.data.domain.PageRequest;
 
 class OrganizationControllerTests {
 
@@ -25,7 +25,7 @@ class OrganizationControllerTests {
         controller.get(organizationId);
         controller.suspend(organizationId);
         controller.archive(organizationId);
-        controller.memberships(organizationId);
+        controller.memberships(organizationId, PageRequest.of(0, 20));
         controller.invite(organizationId, membershipRequest);
         controller.role(organizationId, membershipId, roleRequest);
         controller.remove(organizationId, membershipId);
@@ -34,7 +34,7 @@ class OrganizationControllerTests {
         verify(service).get(organizationId);
         verify(service).suspend(organizationId);
         verify(service).archive(organizationId);
-        verify(service).listMemberships(organizationId);
+        verify(service).listMemberships(organizationId, PageRequest.of(0, 20));
         verify(service).invite(organizationId, membershipRequest);
         verify(service).changeRole(organizationId, membershipId, roleRequest);
         verify(service).remove(organizationId, membershipId);

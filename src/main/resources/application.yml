@@ -12,7 +12,6 @@ spring:
         jwt:
           jwk-set-uri: ${OIDC_JWK_SET_URI:http://localhost:8081/.well-known/jwks.json}
           issuer-uri: ${OIDC_ISSUER_URI:http://localhost:8081/issuer}
-          audience: ${OIDC_AUDIENCE:medicacao-api}
 
   datasource:
     hikari:
@@ -34,6 +33,13 @@ spring:
     schemas: app
     default-schema: app
     create-schemas: true
+
+app:
+  security:
+    oidc:
+      jwk-set-uri: ${OIDC_JWK_SET_URI:http://localhost:8081/.well-known/jwks.json}
+      issuer-uri: ${OIDC_ISSUER_URI:http://localhost:8081/issuer}
+      audience: ${OIDC_AUDIENCE:medicacao-api}
 
 server:
   port: 8080

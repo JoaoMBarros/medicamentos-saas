@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.time.Instant;
+import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import br.com.medicacao.saas.identity.TenantAccessDeniedException;
 import br.com.medicacao.saas.identity.TenantContext;
@@ -36,7 +39,8 @@ class OrganizationServiceTests {
 
     @BeforeEach
     void setUp() {
-        service = new OrganizationService(organizations, memberships, auditEvents, new TenantContext());
+        service = new OrganizationService(organizations, memberships, auditEvents, new TenantContext(),
+                Clock.systemUTC());
         authenticate("user-1", organizationId.toString());
     }
 
@@ -84,13 +88,15 @@ class OrganizationServiceTests {
     void listsAndInvitesMemberships() {
         when(memberships.findByOrganizationIdAndUserId(organizationId, "user-1"))
                 .thenReturn(Optional.of(activeMembership(MembershipRole.OWNER)));
-        when(memberships.findAllByOrganizationIdAndStatusNot(organizationId, MembershipStatus.REMOVED))
-                .thenReturn(List.of(activeMembership(MembershipRole.OWNER)));
+        when(memberships.findAllByOrganizationIdAndStatusNot(organizationId, MembershipStatus.REMOVED,
+                PageRequest.of(0, 20))).thenReturn(new PageImpl<>(
+                        List.of(activeMembership(MembershipRole.OWNER)), PageRequest.of(0, 20), 1));
         when(memberships.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(memberships.findByOrganizationIdAndUserId(organizationId, "user-2"))
                 .thenReturn(Optional.empty());
 
-        assertThat(service.listMemberships(organizationId)).hasSize(1);
+        assertThat(service.listMemberships(organizationId, PageRequest.of(0, 20)).content())
+                .hasSize(1);
         MembershipResponse response = service.invite(organizationId,
                 new MembershipRequest("user-2", "operator", MembershipRole.OPERATOR));
 
@@ -103,7 +109,8 @@ class OrganizationServiceTests {
         OrganizationMembership membership = activeMembership(MembershipRole.OPERATOR);
         when(memberships.findByOrganizationIdAndUserId(organizationId, "user-1"))
                 .thenReturn(Optional.of(activeMembership(MembershipRole.ADMIN)));
-        when(memberships.findById(membership.getId())).thenReturn(Optional.of(membership));
+        when(memberships.findByIdAndOrganizationId(membership.getId(), organizationId))
+                .thenReturn(Optional.of(membership));
 
         assertThat(service.changeRole(organizationId, membership.getId(),
                 new RoleRequest(MembershipRole.VIEWER)).role()).isEqualTo(MembershipRole.VIEWER);
@@ -134,7 +141,8 @@ class OrganizationServiceTests {
         OrganizationMembership owner = activeMembership(MembershipRole.OWNER);
         when(memberships.findByOrganizationIdAndUserId(organizationId, "user-1"))
                 .thenReturn(Optional.of(owner));
-        when(memberships.findById(owner.getId())).thenReturn(Optional.of(owner));
+        when(memberships.findByIdAndOrganizationId(owner.getId(), organizationId))
+                .thenReturn(Optional.of(owner));
         assertThatThrownBy(() -> service.changeRole(organizationId, owner.getId(),
                 new RoleRequest(MembershipRole.ADMIN)))
                 .isInstanceOf(OrganizationConflictException.class);

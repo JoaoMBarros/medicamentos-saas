@@ -64,6 +64,14 @@ This file decomposes the deliveries defined in
 - [x] Add cross-tenant read and write rejection tests.
 - [x] Add indexes for tenant-aware lookups.
 
+### SDD practice alignment
+
+- [x] Refactor the implemented Java and Spring code to follow the SDD
+  validation, configuration, tenant-isolation, concurrency, error-contract,
+  deterministic-clock, and test-database practices.
+- [x] Apply the Lombok policy to services, controllers, and JPA entities
+  without changing DTO or entity design semantics.
+
 ## Delivery 3 - Medication catalog and locations
 
 ### Medication catalog

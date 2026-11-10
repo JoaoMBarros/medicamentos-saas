@@ -1,22 +1,21 @@
 package br.com.medicacao.saas.organization;
 
-import java.util.List;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/organizations")
+@RequiredArgsConstructor
 public class OrganizationController {
 
     private final OrganizationService service;
-
-    public OrganizationController(OrganizationService service) {
-        this.service = service;
-    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -40,8 +39,9 @@ public class OrganizationController {
     }
 
     @GetMapping("/{organizationId}/memberships")
-    List<MembershipResponse> memberships(@PathVariable UUID organizationId) {
-        return service.listMemberships(organizationId);
+    MembershipPageResponse memberships(@PathVariable UUID organizationId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return service.listMemberships(organizationId, pageable);
     }
 
     @PostMapping("/{organizationId}/memberships")

@@ -3,6 +3,83 @@
 This report summarizes the implemented product capabilities at a high level.
 It is not a substitute for the architecture, roadmap, or task specification.
 
+## 2026-11-10T03:49:01Z - Lombok policy alignment
+
+**Delivered behavior:**
+
+- Added the Lombok compile-only and annotation-processor setup, including the
+  required SpotBugs annotations dependency and root `lombok.config`.
+- Replaced constructor boilerplate in the organization service and controller
+  with `@RequiredArgsConstructor`.
+- Replaced entity getter and protected no-argument-constructor boilerplate with
+  `@Getter` and `@NoArgsConstructor(access = PROTECTED)`.
+- Added ID-only `@ToString` generation for entities so generated text does not
+  expose usernames, roles, audit details, or other sensitive state.
+- Kept DTOs as records, entity equality/hash code handwritten, and domain
+  constructors and state-changing methods explicit.
+
+**Validation:** `.\gradlew.bat test --tests
+br.com.medicacao.saas.api.* --tests br.com.medicacao.saas.config.* --tests
+br.com.medicacao.saas.identity.* --tests br.com.medicacao.saas.organization.*`
+passed. `.\gradlew.bat check` compiled the project and ran 18 tests, but one
+Spring integration test failed during Testcontainers initialization because the
+Java process could not find a valid Docker environment; no test assertion
+failed.
+
+**Assumptions / limitations:** No endpoint or database schema changed. Lombok
+generated code is excluded from coverage through `lombok.addLombokGeneratedAnnotation`;
+behavioral entity methods remain covered by existing tests.
+
+**Endpoints (curl):** Not applicable; this is a structure-only refactor.
+
+## 2026-11-10T03:41:22Z - SDD practice alignment
+
+**Delivered behavior:**
+
+- Replaced scattered OIDC `@Value` injection with validated,
+  configuration-properties binding.
+- Standardized invalid request responses on HTTP 422 Problem Details and
+  included correlation IDs in application and security error responses.
+- Added immutable authenticated-user invariants, tenant-scoped membership
+  lookup, optimistic locking for organization and membership updates, and
+  UTC clock injection for audit events.
+- Added bounded membership pagination (default 20, maximum 100) and an
+  immutable page response instead of returning an unbounded collection.
+- Replaced the H2 integration-test substitute with PostgreSQL Testcontainers.
+- Added the `version` field to `organizations` and
+  `organization_memberships`; Hibernate uses it as the optimistic-lock
+  counter so concurrent lifecycle or role changes fail instead of silently
+  overwriting one another.
+
+**Validation:** Java 21 compilation passed. Targeted unit tests for API,
+configuration, identity, and organization modules passed. The full
+`.\gradlew.bat check` and the PostgreSQL integration test remain blocked by
+Testcontainers' inability to find a valid Docker environment in this session.
+Acceptance criteria: AC-1 configuration binding, AC-2 protected tenant
+operations, AC-3 explicit validation/error contract, AC-4 concurrent update
+protection, and AC-5 PostgreSQL-backed deterministic integration setup.
+
+**Assumptions / limitations:** No new endpoint was introduced; the existing
+membership collection now accepts `page` and `size` query parameters. The full
+Gradle check remains pending in an environment where Testcontainers can
+connect to Docker.
+
+**Endpoints (curl):** No new endpoints. The changed collection contract is:
+
+```bash
+curl -i -X GET \
+  "http://localhost:8080/api/organizations/<organization-id>/memberships?page=0&size=20" \
+  -H "Authorization: ******" \
+  -H "Accept: application/json"
+```
+
+Existing protected examples are documented below.
+
+**Database:** Migration `V3__add_optimistic_lock_versions.sql` adds the
+non-null `version` counter (default `0`) to `organizations` and
+`organization_memberships`. Existing fields and tenant/uniqueness/index
+constraints remain unchanged.
+
 ## 2026-11-10 00:08 (-03:00) - GitHub Actions validation for feature branches
 
 - Configured GitHub Actions to run on every push to branches beginning with

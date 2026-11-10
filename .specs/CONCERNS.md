@@ -7,6 +7,10 @@ corresponding deployment.
 
 ## Review pre development deploy
 
+- [ ] Local integration tests now require Docker/Testcontainers for PostgreSQL;
+  verify the shared development CI and developer environments provide a
+  supported Docker runtime before relying on `./gradlew check`.
+
 Review these items before deploying to a shared development environment.
 
 - [ ] Replace the local Keycloak `start-dev` mode with a deployment-appropriate

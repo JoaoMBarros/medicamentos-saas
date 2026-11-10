@@ -1,14 +1,27 @@
 package br.com.medicacao.saas.organization;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "organization_audit_events")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(onlyExplicitlyIncluded = true)
 public class OrganizationAuditEvent {
     @Id
+    @ToString.Include
     private UUID id;
     @Column(name = "organization_id", nullable = false)
     private UUID organizationId;
@@ -22,17 +35,19 @@ public class OrganizationAuditEvent {
     @Column(nullable = false)
     private Instant createdAt;
 
-    protected OrganizationAuditEvent() {
+    public OrganizationAuditEvent(UUID organizationId, String actorUserId, String eventType,
+            String targetUserId, String details) {
+        this(organizationId, actorUserId, eventType, targetUserId, details, Clock.systemUTC());
     }
 
     public OrganizationAuditEvent(UUID organizationId, String actorUserId, String eventType,
-            String targetUserId, String details) {
+            String targetUserId, String details, Clock clock) {
         this.id = UUID.randomUUID();
         this.organizationId = organizationId;
         this.actorUserId = actorUserId;
         this.eventType = eventType;
         this.targetUserId = targetUserId;
         this.details = details;
-        this.createdAt = Instant.now();
+        this.createdAt = Instant.now(clock);
     }
 }
