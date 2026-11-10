@@ -14,10 +14,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import br.com.medicacao.saas.config.RequestCorrelationFilter;
+import br.com.medicacao.saas.catalog.MedicationConflictException;
+import br.com.medicacao.saas.catalog.MedicationNotFoundException;
+import br.com.medicacao.saas.catalog.LocationConflictException;
+import br.com.medicacao.saas.catalog.LocationNotFoundException;
 import br.com.medicacao.saas.identity.TenantAccessDeniedException;
 import br.com.medicacao.saas.identity.TenantAuthenticationException;
 import br.com.medicacao.saas.organization.OrganizationConflictException;
 import br.com.medicacao.saas.organization.OrganizationNotFoundException;
+import br.com.medicacao.saas.inventory.InventoryConflictException;
+import br.com.medicacao.saas.inventory.InventoryNotFoundException;
+import br.com.medicacao.saas.inventory.InventoryValidationException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -48,10 +55,53 @@ public class ApiExceptionHandler {
         return problem(HttpStatus.NOT_FOUND, "Resource not found", exception.getMessage(), request);
     }
 
+    @ExceptionHandler(MedicationNotFoundException.class)
+    ProblemDetail handleMedicationNotFound(MedicationNotFoundException exception,
+            HttpServletRequest request) {
+        return problem(HttpStatus.NOT_FOUND, "Resource not found", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(LocationNotFoundException.class)
+    ProblemDetail handleLocationNotFound(LocationNotFoundException exception,
+            HttpServletRequest request) {
+        return problem(HttpStatus.NOT_FOUND, "Resource not found", exception.getMessage(), request);
+    }
+
     @ExceptionHandler(OrganizationConflictException.class)
     ProblemDetail handleConflict(OrganizationConflictException exception,
             HttpServletRequest request) {
         return problem(HttpStatus.CONFLICT, "Conflict", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(MedicationConflictException.class)
+    ProblemDetail handleMedicationConflict(MedicationConflictException exception,
+            HttpServletRequest request) {
+        return problem(HttpStatus.CONFLICT, "Conflict", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(LocationConflictException.class)
+    ProblemDetail handleLocationConflict(LocationConflictException exception,
+            HttpServletRequest request) {
+        return problem(HttpStatus.CONFLICT, "Conflict", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(InventoryNotFoundException.class)
+    ProblemDetail handleInventoryNotFound(InventoryNotFoundException exception,
+            HttpServletRequest request) {
+        return problem(HttpStatus.NOT_FOUND, "Resource not found", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(InventoryConflictException.class)
+    ProblemDetail handleInventoryConflict(InventoryConflictException exception,
+            HttpServletRequest request) {
+        return problem(HttpStatus.CONFLICT, "Conflict", exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(InventoryValidationException.class)
+    ProblemDetail handleInventoryValidation(InventoryValidationException exception,
+            HttpServletRequest request) {
+        return problem(HttpStatus.UNPROCESSABLE_ENTITY, "Validation failed",
+                exception.getMessage(), request);
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
