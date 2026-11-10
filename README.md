@@ -130,6 +130,42 @@ docker compose up -d postgres
 Endpoints de negócio devem exigir autenticação. Health checks operacionais
 devem ser expostos somente conforme a configuração da infraestrutura.
 
+## Organizations and tenant isolation
+
+Organizations are identified by the `organization_id` JWT claim. Organization
+and membership endpoints reject requests whose path organization differs from
+the authenticated tenant. Membership changes require `OWNER` or `ADMIN`
+permission, and all membership and lifecycle changes create audit events.
+
+Available protected endpoints:
+
+- `POST /api/organizations`
+- `GET /api/organizations/{organizationId}`
+- `POST /api/organizations/{organizationId}/suspend`
+- `POST /api/organizations/{organizationId}/archive`
+- `GET /api/organizations/{organizationId}/memberships`
+- `POST /api/organizations/{organizationId}/memberships`
+- `PATCH /api/organizations/{organizationId}/memberships/{membershipId}/role`
+- `DELETE /api/organizations/{organizationId}/memberships/{membershipId}`
+
+Example requests (replace `<jwt>` and IDs with values from the authenticated
+tenant):
+
+```bash
+curl -X POST http://localhost:8080/api/organizations \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Acme Pharmacy","slug":"acme-pharmacy"}'
+
+curl "http://localhost:8080/api/organizations/<organization-id>/memberships?page=0&size=20" \
+  -H "Authorization: Bearer <jwt>"
+
+curl -X POST http://localhost:8080/api/organizations/<organization-id>/memberships \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"user-123","username":"operator","role":"OPERATOR"}'
+```
+
 ## Testes e cobertura
 
 Execute os testes:

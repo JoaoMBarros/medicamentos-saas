@@ -3,19 +3,16 @@ spring:
     activate:
       on-profile: test
 
-  datasource:
-    url: jdbc:h2:mem:medicacao;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://test-issuer
-          audience: medicacao-api
           jwk-set-uri: http://test-jwks
+
+app:
+  security:
+    oidc:
+      issuer-uri: http://test-issuer
+      audience: medicacao-api
+      jwk-set-uri: http://test-jwks
