@@ -3,6 +3,18 @@
 This report summarizes the implemented product capabilities at a high level.
 It is not a substitute for the architecture, roadmap, or task specification.
 
+## 2026-11-10 00:08 (-03:00) - GitHub Actions validation for feature branches
+
+- Configured GitHub Actions to run on every push to branches beginning with
+  `feature` or `fix`.
+- Configured pull request validation when targeting `develop` or `master`.
+- Separated tests, quality and coverage verification, and application build
+  into visible workflow steps.
+- Added an explicit GitHub Actions step that fails when JaCoCo line coverage
+  falls below the required 85% minimum.
+- Any failed step marks the GitHub Actions check as failed and reports the
+  commit as unsuccessful.
+
 ## 2026-11-09 19:25 (-03:00) - Local Keycloak infrastructure
 
 - Added a persistent Keycloak service to the local Docker Compose environment.

@@ -3,11 +3,12 @@ name: CI
 on:
   push:
     branches:
+      - 'feature*'
+      - 'fix*'
+  pull_request:
+    branches:
       - develop
       - master
-      - 'feature/**'
-      - 'fix/**'
-  pull_request:
 
 permissions:
   contents: read
@@ -26,5 +27,11 @@ jobs:
           cache: gradle
       - name: Grant execute permission
         run: chmod +x gradlew
-      - name: Run checks
+      - name: Run tests
+        run: ./gradlew test
+      - name: Verify minimum 85% JaCoCo coverage
+        run: ./gradlew jacocoTestCoverageVerification
+      - name: Run quality checks
         run: ./gradlew check
+      - name: Build application
+        run: ./gradlew build
